@@ -13,3 +13,10 @@ after_success:
   - docker build -t thilaga219/multi-nginx ./nginx
   - docker build -t thilaga219/multi-server ./server
   - docker build -t thilaga219/multi-worker ./worker
+  # Log in to the docker CLI (single cmd to login dockerhub)
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push thilaga219/multi-client
+  - docker push thilaga219/multi-nginx
+  - docker push thilaga219/multi-server
+  - docker push thilaga219/multi-worker
