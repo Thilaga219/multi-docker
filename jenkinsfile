@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+ 
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout your repository
+                git branch:'dev_1', url: 'https://github.com/Thilaga219/React_docker.git'
+                sh 'ls -l'
+            }
+        }
+ 
+        stage('Build and Run Containers') {
+            steps {
+                script {
+                    // Build and run the Docker containers
+                    sh 'docker-compose up --build'
+                }
+            }
+        }
+ 
+        stage('Test') {
+            steps {
+                script {
+                    // Wait for the services to be up and running
+                    sleep 10
+ 
+                    // Test if the web service is running
+                    sh 'curl -f http://localhost:3000 || exit 1'
+                }
+            }
+        }
+ 
+        stage('Clean Up') {
+            steps {
+                script {
+                    // Stop and remove the containers
+                    sh 'docker-compose down'
+                }
+            }
+        }
+    }
+ 
+    post {
+        always {
+            // Clean up workspace
+            cleanWs()
+        }
+    }
+}
