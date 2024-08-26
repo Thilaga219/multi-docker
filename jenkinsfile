@@ -36,7 +36,7 @@ pipeline {
             steps {
                 script {
                     // Stop and remove the containers
-                    echo "######Final Images built started#####"
+                    echo "######Final Images built started######"
                     sh """ 
                     docker build -t thilaga219/multi-client ./client
                     docker build -t thilaga219/multi-nginx ./nginx
