@@ -1,0 +1,74 @@
+pipeline {
+    agent any
+ 
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout your repository
+                git branch:'dev_1', url: 'https://github.com/Thilaga219/React_docker.git'
+                sh 'ls -l'
+            }
+        }
+ 
+        stage('Before Install') {
+            steps {
+                script {
+                    // Build and run the Docker containers
+                    echo "####Dev build started#######"
+                    sh 'docker build -t thilaga219/react-test -f ./client/Dockerfile.dev ./client/Dockerfile.dev'
+                    echo "####Dev build Ended######"
+                }
+            }
+        }
+ 
+        stage('Test') {
+            steps {
+                script {
+                    echo "#######Test Started#########"
+                    // Test if the web service is running
+                    sh 'docker run -e CI=true thilaga219/react-test npm test -- --coverage'
+                    echo "#######Test Ended#########"
+                }
+            }
+        }
+
+        stage('Build Final Images') {
+            steps {
+                script {
+                    // Stop and remove the containers
+                    echo "######Final Images built started#####"
+                    sh """ 
+                    docker build -t thilaga219/multi-client ./client
+                    docker build -t thilaga219/multi-nginx ./nginx
+                    docker build -t thilaga219/multi-server ./server
+                    docker build -t thilaga219/multi-worker ./worker 
+                    """
+                    echo "####Final Images built completed######"
+                }
+            }
+        }
+        
+        stage('Push images to DockerHub') {
+            steps {
+                script {
+                    // Stop and remove the containers
+                    sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin'
+                    echo "Login completed"
+                    sh """
+                    docker push thilaga219/multi-client
+                    docker push thilaga219/multi-nginx
+                    docker push thilaga219/multi-server
+                    docker push thilaga219/multi-worker
+                    """
+                }
+            }
+        }
+ 
+    post {
+        always {
+            // Clean up workspace
+            cleanWs()
+        }
+    }
+}
+}
