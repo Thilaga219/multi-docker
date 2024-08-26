@@ -10,11 +10,13 @@ pipeline {
             }
         }
  
-        stage('Build and Run Containers') {
+        stage('Before Install') {
             steps {
                 script {
                     // Build and run the Docker containers
-                    sh 'docker-compose up --build'
+                    echo "####Dev build started#######"
+                    sh 'docker build -t thilaga219/react-test -f ./client/Dockerfile.dev ./client/Dockerfile.dev'
+                    echo "####Dev build Ended######"
                 }
             }
         }
@@ -22,24 +24,45 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Wait for the services to be up and running
-                    sleep 10
- 
+                    echo "#######Test Started#########"
                     // Test if the web service is running
-                    sh 'curl -f http://localhost:3000 || exit 1'
+                    sh 'docker run -e CI=true thilaga219/react-test npm test -- --coverage'
+                    echo "#######Test Ended#########"
                 }
             }
         }
- 
-        stage('Clean Up') {
+
+        stage('Build Final Images') {
             steps {
                 script {
                     // Stop and remove the containers
-                    sh 'docker-compose down'
+                    echo "######Final Images built started#####"
+                    sh """ 
+                    docker build -t thilaga219/multi-client ./client
+                    docker build -t thilaga219/multi-nginx ./nginx
+                    docker build -t thilaga219/multi-server ./server
+                    docker build -t thilaga219/multi-worker ./worker 
+                    """
+                    echo "####Final Images built completed######"
                 }
             }
         }
-    }
+        
+        stage('Push images to DockerHub') {
+            steps {
+                script {
+                    // Stop and remove the containers
+                    sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin'
+                    echo "Login completed"
+                    sh """
+                    docker push thilaga219/multi-client
+                    docker push thilaga219/multi-nginx
+                    docker push thilaga219/multi-server
+                    docker push thilaga219/multi-worker
+                    """
+                }
+            }
+        }
  
     post {
         always {
@@ -47,4 +70,5 @@ pipeline {
             cleanWs()
         }
     }
+}
 }
