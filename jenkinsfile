@@ -60,15 +60,9 @@ pipeline {
                     docker push thilaga219/multi-server
                     docker push thilaga219/multi-worker
                     """
+                    cleanWs()
                 }
             }
         }
- 
-    post {
-        always {
-            // Clean up workspace
-            cleanWs()
-        }
-    }
 }
 }
