@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 cleanWs()
-                // Checkout your repository
+                // Checkout your repository.
                 git branch:'dev_1', url: 'https://github.com/Thilaga219/React_docker.git'
                 sh 'ls -l'
             }
